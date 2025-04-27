@@ -1,0 +1,102 @@
+
+---
+title: "UNICEF Report: Violent Discipline Among Children"
+format:
+  html:
+    embed-resources: true
+    code-fold: true
+    theme: cosmo
+---
+
+# Introduction
+
+Child violence remains a hidden epidemic impacting millions globally. UNICEF’s latest data on violent discipline practices reveals alarming rates of abuse across countries. By visualizing these patterns, we aim to raise public awareness, inform policymakers, and advocate for safer childhoods worldwide. Every child deserves a life free from violence.
+
+# World Map: Global Overview of Violent Discipline
+
+```{python}
+import pandas as pd
+import geopandas as gpd
+from plotnine import *
+
+# Load Data
+df_indicator = pd.read_csv('/content/unicef_indicator_2 (1).csv')
+df_indicator.rename(columns={'country': 'Country', 'obs_value': 'Most_recent_value'}, inplace=True)
+
+# Load World Shape
+world = gpd.read_file("world_data/ne_110m_admin_0_countries.shp")
+
+# Merge Data
+world_merged = world.merge(df_indicator, how='left', left_on='NAME', right_on='Country')
+
+# World Map Plot
+(
+    ggplot(world_merged.dropna(subset=['Most_recent_value'])) +
+    geom_map(aes(fill='Most_recent_value'), color='black') +
+    scale_fill_gradient(low="lightblue", high="red") +
+    labs(title='World Map: Violent Discipline Among Children (Aged 1-14)',
+         fill='% Violent Discipline') +
+    theme_minimal() +
+    theme(figure_size=(12, 8))
+)
+```
+
+_This map reveals significant geographical disparities in violent discipline practices. It highlights the urgent need for global policy interventions._
+
+# Bar Chart: Top 15 Countries
+
+```{python}
+# Top 15 Countries
+top_countries = df_indicator.nlargest(15, 'Most_recent_value')
+
+(
+    ggplot(top_countries, aes(x='reorder(Country, -Most_recent_value)', y='Most_recent_value')) +
+    geom_bar(stat='identity', fill='skyblue') +
+    labs(x='Country', y='% Violent Discipline', title='Top 15 Countries by Violent Discipline') +
+    theme_minimal() +
+    theme(axis_text_x=element_text(rotation=45, hjust=1), figure_size=(12, 7))
+)
+```
+
+_This bar chart focuses attention on the countries where violent discipline among children is most severe._
+
+# Scatterplot with Linear Regression
+
+```{python}
+(
+    ggplot(df_indicator, aes(x='Country', y='Most_recent_value')) +
+    geom_point(color='darkgreen', size=3, alpha=0.6) +
+    geom_smooth(method='lm', color='red', se=False) +
+    labs(title='Country vs Violent Discipline %',
+         x='Country',
+         y='% Violent Discipline') +
+    theme_minimal() +
+    theme(axis_text_x=element_text(rotation=90, hjust=1), figure_size=(12, 6))
+)
+```
+
+_The scatterplot shows the variation in violent discipline rates across countries, with a regression line revealing the general trend._
+
+# Density Plot: Distribution of Violent Discipline
+
+```{python}
+(
+    ggplot(df_indicator, aes(x='Most_recent_value')) +
+    geom_density(fill='red', color='darkblue') +
+    labs(title='Density of Violent Discipline Rates Across Countries',
+         x='% Violent Discipline', y='Density') +
+    theme_minimal() +
+    theme(figure_size=(8, 6))
+)
+```
+
+_The density plot shows that most countries cluster around moderate violent discipline rates, though worrying extremes exist._
+
+# Conclusion
+
+The data visualizations reveal a grim reality: violent discipline remains a major issue for children aged 1-14 worldwide. Some countries show extremely high rates, indicating systemic social issues that demand urgent action. Progress must be accelerated to protect children's rights and foster non-violent environments everywhere.
+
+# Recommendations
+
+1. **Policy Reform**: Strengthen and enforce laws against all forms of violent child discipline.
+2. **Awareness Campaigns**: Educate parents, teachers, and communities about non-violent child-rearing practices.
